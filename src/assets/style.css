@@ -1,0 +1,22 @@
+.material-btn {
+  background: linear-gradient(135deg, #e91e63, #2196f3); /* rose → bleu */
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+}
+
+.material-btn:hover {
+  background: linear-gradient(135deg, #ff4081, #00b0ff); /* plus clair au survol */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+
+.material-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}

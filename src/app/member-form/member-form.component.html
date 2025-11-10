@@ -1,0 +1,40 @@
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Member</title>
+  <style>
+    .full-width {
+      width: 100%;
+      margin-bottom: 16px; /* espace entre les champs */
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">Create new Member</h2>
+<!-- envoi sous form de objet nomme foreme groupe-->
+
+<form [formGroup]="form" (ngSubmit)="onsub()">
+
+      <mat-form-field class="full-width" appearance="fill">
+        <!-- le formControlName qi fait le laison entre les champs doit étre le mem nom dans ts-->
+    <input matInput placeholder="Cin" formControlName="cin">
+  </mat-form-field>
+
+  <mat-form-field class="full-width" appearance="fill">
+    <input matInput placeholder="Name" formControlName="name">
+  </mat-form-field>
+
+  <mat-form-field class="full-width" appearance="fill">
+    <input matInput placeholder="Type" formControlName="type">
+  </mat-form-field>
+
+  <mat-form-field class="full-width" appearance="fill">
+    <input matInput placeholder="CV" formControlName="cv">
+  </mat-form-field>
+<button mat-raised-button color="primary" type="submit">
+ Create
+</button>
+</form> 
+</body>
+</html>
