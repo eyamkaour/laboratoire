@@ -1,0 +1,81 @@
+{
+  "membres": [
+    {
+      "cin": "11152375",
+      "name": "hanag",
+      "type": "student",
+      "cv": "55",
+      "id": "32ad"
+    },
+    {
+      "cin": "11152365",
+      "name": "mouna",
+      "type": "student",
+      "createDate": "gf",
+      "cv": "d",
+      "id": "8812"
+    },
+    {
+      "id": "27b5",
+      "cin": "11125477",
+      "name": "fatma",
+      "type": "teacher",
+      "cv": "dd",
+      "createDate": "2025-10-09T10:42:55.329Z"
+    },
+    {
+      "id": "7bc7",
+      "cin": "11144477",
+      "name": "ginen",
+      "type": "student",
+      "cv": "jh",
+      "createDate": "2025-10-09T10:48:53.282Z"
+    }
+  ],
+  "events": [
+    {
+      "id": "111",
+      "titre": " event 1",
+      "date": "25/01/2025",
+      "lieu": "sfax"
+    },
+    {
+      "id": "111",
+      "titre": " event 2",
+      "date": "25/01/2025",
+      "lieu": "sfax"
+    },
+    {
+      "titre": "d",
+      "date": "20",
+      "lieu": "sfax",
+      "id": "287e"
+    },
+    {
+      "titre": "event4",
+      "date": "20",
+      "lieu": "sfax",
+      "id": "ebd4"
+    },
+    {
+      "id": "5eb1",
+      "titre": "event",
+      "date": "2025/05/01",
+      "lieu": "sfax"
+    },
+    {
+      "id": "4729"
+    },
+    {
+      "id": "9bac"
+    },
+    {
+      "id": "d3b8"
+    },
+    {
+      "id": "12ba"
+    }
+  ],
+  "pub": [],
+  "outils": []
+}
