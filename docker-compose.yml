@@ -1,16 +1,15 @@
-version: '3'
 services:
   angular-app:
-    build: .
+    build: ./angular
     ports:
-      - "4200:4200"
-    depends_on:
-      - json-server
-
+      - "4200:80"
   json-server:
     image: clue/json-server
     volumes:
       - ./db.json:/data/db.json
-    command: json-server --host 0.0.0.0 --watch /data/db.json --port 3000
     ports:
       - "3000:3000"
+  other-app:
+    image: nginx
+    ports:
+      - "8080:8000"
