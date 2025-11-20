@@ -4,23 +4,26 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git branch: 'master', url:'https://github.com/eyamkaour/laboratoire.git'
+                git branch: 'master', url: 'https://github.com/eyamkaour/laboratoire.git'
             }
         }
-        stage('Build') {
+
+        stage('Docker Compose Build & Up') {
             steps {
-                echo "Build du projet..."
+                echo "Stop old containers..."
+                bat 'docker-compose down || exit 0'
+
+                echo "Build and start containers..."
+                bat 'docker-compose up -d --build'
             }
         }
-        stage('Test') {
+
+        stage('Test Angular') {
             steps {
-                echo "Tests unitaires..."
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo "Déploiement..."
+                echo "Check Angular logs..."
+                bat 'docker logs angular-app'
             }
         }
     }
 }
+
