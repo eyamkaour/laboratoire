@@ -11,7 +11,7 @@ import { Member } from 'src/Models/Membre';
 })
 export class MemberService {
   //CLAsse predefinit de angular qui permet d'envoyer des requettes
-
+  private apiUrl = '/api';
   constructor(
     private httpClinet: HttpClient
   ) {
@@ -25,24 +25,24 @@ export class MemberService {
 
   GetAllMembers():Observable<Member []>{
     //envoi d'une requette http vers le backend 
-    return  this.httpClinet.get< Member []>("http://localhost:3000/membres")
+    return  this.httpClinet.get< Member []>(`${this.apiUrl}/membres`)
   }
   //lorsque appele methode de service lance un thread de type observable
   //retorn status dans post
   addMember(x:Member){
     return this.httpClinet.post<void>
-    ('http://localhost:3000/membres',x)
+    ('/api//membres',x)
 
   }
   //l'id genere random par json server
   deleteMemberById (id : string){
-    return this.httpClinet.delete<void>(`http://localhost:3000/membres/${id}`)
+    return this.httpClinet.delete<void>(`${this.apiUrl}/membres/${id}`)
   }
   getMemberById(id : string):Observable<Member>{
     console.log("sevice get")
-    return this.httpClinet.get< Member>(`http://localhost:3000/membres/${id}`)
+    return this.httpClinet.get< Member>(`${this.apiUrl}/membres/${id}`)
   }
   updateMmber(id : string , member : Member){
-    return this.httpClinet.put< void>(`http://localhost:3000/membres/${id}`, member)// PUT ECRASE LE DONNES PRECEDENT ET met le nouveaux (modification)
+    return this.httpClinet.put< void>(`${this.apiUrl}/membres/${id}`, member)// PUT ECRASE LE DONNES PRECEDENT ET met le nouveaux (modification)
   }
 }

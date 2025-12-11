@@ -1,15 +1,19 @@
 services:
   angular-app:
-    build: ./angular
+    build: .
     ports:
       - "4200:80"
+    depends_on:
+      - json-server
+    networks:
+      - app-network
   json-server:
     image: clue/json-server
     volumes:
       - ./db.json:/data/db.json
     ports:
-      - "3000:3000"
+      - "3000:80"
   other-app:
     image: nginx
     ports:
-      - "8080:8000"
+      - "8080:80"
