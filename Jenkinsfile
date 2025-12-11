@@ -26,8 +26,6 @@ pipeline {
                 echo "Build and start containers..."
                 bat 'docker-compose up -d --build'
                 
-                echo "Wait for containers to start..."
-                bat 'timeout /t 10'
             }
         }
 
