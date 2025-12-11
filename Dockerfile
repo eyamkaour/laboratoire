@@ -10,6 +10,6 @@ RUN npm run build --prod
 
 # Étape 2 : servir Angular avec Nginx
 FROM nginx:alpine
-COPY --from=build /app/dist/mon-projet-angular /usr/share/nginx/html
+COPY --from=build /app/dist/proj-ang /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
