@@ -17,3 +17,7 @@ services:
     image: nginx
     ports:
       - "8080:80"
+# ⬇️ IMPORTANT : Définir les réseaux ici !
+networks:
+  app-network:
+    driver: bridge
