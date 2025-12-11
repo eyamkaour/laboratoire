@@ -1,6 +1,6 @@
 services:
   angular-app:
-    build: ./angular
+    build: "D:/3eme_ing/Angular/AngularWorkspace/ProjAnge"
     ports:
       - "4200:80"
   json-server:
