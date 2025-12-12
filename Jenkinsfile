@@ -17,7 +17,15 @@ pipeline {
                 bat 'if exist package.json (echo package.json found) else (echo ERROR: package.json not found! && exit 1)'
             }
         }
-
+        stage('Setup Git') {
+    steps {
+        bat '''
+            git config --global core.autocrlf input
+            git config --global core.eol lf
+            git config --global core.safecrlf warn
+        '''
+    }
+}
         stage('Cleanup Old Containers') {
             steps {
                 echo "=== Stopping and removing old containers ==="
