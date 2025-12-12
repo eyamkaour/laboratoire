@@ -57,18 +57,18 @@ services:
       - test
 
   # Lighthouse - Tests de performance Frontend
-  lighthouse:
-    image: femtopixel/google-lighthouse:latest
-    container_name: lighthouse
-    volumes:
-      - ./lighthouse-reports:/home/chrome/reports
-    command: >
-      --chrome-flags="--headless --no-sandbox --disable-gpu"
-      --output=html
-      --output=json
-      --output-path=/home/chrome/reports/report.html
-      http://angular-app:80
-    depends_on:
-      - angular-app
-    profiles:
-      - test
+lighthouse:
+  image: femtopixel/google-lighthouse:latest
+  container_name: lighthouse
+  volumes:
+    - ./lighthouse-reports:/home/chrome/reports
+  command: >
+    lighthouse http://angular-app:80
+    --chrome-flags="--headless --no-sandbox --disable-gpu"
+    --output=html
+    --output=json
+    --output-path=/home/chrome/reports/report.html
+  depends_on:
+    - angular-app
+  profiles:
+    - test
