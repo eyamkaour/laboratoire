@@ -170,7 +170,14 @@ pipeline {
             bat 'docker ps || exit /b 0'
             
             echo "=== Cleaning up test containers ==="
-            bat 'docker-compose --profile test down || exit /b 0'
+            bat """
+            docker-compose --profile test run --rm lighthouse \
+            lighthouse http://angular-app:80 \
+            // --chrome-flags="--headless --no-sandbox --disable-gpu" \
+            // --output=html \
+            // --output-path=/reports/report.html
+    """
+
         }
         failure {
             echo "=========================================="
