@@ -21,8 +21,17 @@ pipeline {
         stage('Cleanup Old Containers') {
             steps {
                 echo "=== Stopping and removing old containers ==="
-                bat 'docker-compose down -v || exit 0'
-               
+                bat 'docker-compose down -v --remove-orphans || exit 0'
+                
+                echo "=== Force remove specific containers if they exist ==="
+                bat 'docker rm -f nginx-app json-server angular-app testproj-other-app-1 || exit 0'
+                
+                echo "=== Check if ports are free ==="
+                bat 'netstat -ano | findstr :4200 || echo Port 4200 is free'
+                bat 'netstat -ano | findstr :3000 || echo Port 3000 is free'
+                bat 'netstat -ano | findstr :8080 || echo Port 8080 is free'
+                
+                bat 'timeout /t 5'
             }
         }
 
@@ -32,7 +41,7 @@ pipeline {
                 bat 'docker-compose up -d --build'
                 
                 echo "=== Waiting for services to be healthy ==="
-               
+                bat 'timeout /t 30'
             }
         }
 
@@ -89,12 +98,81 @@ pipeline {
                 bat 'findstr /C:"<!doctype html>" response.html || findstr /C:"<html" response.html || exit 1'
             }
         }
+
+        stage('Performance Tests') {
+            parallel {
+                stage('JMeter - API Load Test') {
+                    steps {
+                        echo "=== Running JMeter Performance Tests ==="
+                        echo "Testing API with 20 virtual users..."
+                        
+                        // Lancer JMeter
+                        bat 'docker-compose --profile test run --rm jmeter'
+                        
+                        echo "=== JMeter Results ==="
+                        bat 'if exist jmeter-results\\results.jtl (type jmeter-results\\results.jtl) else (echo No results found)'
+                        
+                        // Publier le rapport HTML
+                        publishHTML([
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'jmeter-results/html-report',
+                            reportFiles: 'index.html',
+                            reportName: 'JMeter Performance Report',
+                            reportTitles: 'API Load Test Results'
+                        ])
+                    }
+                }
+                
+                stage('Lighthouse - Frontend Performance') {
+                    steps {
+                        echo "=== Running Lighthouse Audit ==="
+                        echo "Analyzing Angular app performance..."
+                        
+                        // Lancer Lighthouse
+                        bat 'docker-compose --profile test run --rm lighthouse'
+                        
+                        echo "=== Lighthouse completed ==="
+                        
+                        // Publier le rapport HTML
+                        publishHTML([
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'lighthouse-reports',
+                            reportFiles: 'report.html',
+                            reportName: 'Lighthouse Performance Report',
+                            reportTitles: 'Frontend Performance Audit'
+                        ])
+                    }
+                }
+            }
+        }
+
+        stage('Performance Summary') {
+            steps {
+                echo "=========================================="
+                echo "     TESTS DE PERFORMANCE TERMINÉS       "
+                echo "=========================================="
+                echo ""
+                echo "📊 JMeter Report: Voir dans Jenkins > JMeter Performance Report"
+                echo "🔍 Lighthouse Report: Voir dans Jenkins > Lighthouse Performance Report"
+                echo ""
+                echo "Résultats disponibles dans:"
+                echo "  - jmeter-results/html-report/index.html"
+                echo "  - lighthouse-reports/report.html"
+            }
+        }
     }
 
     post {
         always {
             echo "=== Pipeline completed ==="
             bat 'docker ps'
+            
+            echo "=== Cleaning up test containers ==="
+            bat 'docker-compose --profile test down || exit 0'
         }
         failure {
             echo "=== Pipeline FAILED - Collecting debug info ==="
@@ -103,10 +181,17 @@ pipeline {
             bat 'docker-compose logs || exit 0'
         }
         success {
-            echo "=== Pipeline SUCCESS ==="
-            echo "Application available at: http://localhost:4200"
-            echo "JSON Server available at: http://localhost:3000"
-            echo "API available at: http://localhost:4200/api/events"
+            echo "=========================================="
+            echo "        ✅ PIPELINE RÉUSSI ! ✅          "
+            echo "=========================================="
+            echo ""
+            echo "🌐 Application: http://localhost:4200"
+            echo "📡 JSON Server: http://localhost:3000"
+            echo "🔗 API Proxy: http://localhost:4200/api/events"
+            echo ""
+            echo "📊 Rapports de performance:"
+            echo "  - JMeter: Jenkins > JMeter Performance Report"
+            echo "  - Lighthouse: Jenkins > Lighthouse Performance Report"
         }
     }
 }

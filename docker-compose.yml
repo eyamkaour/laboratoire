@@ -38,3 +38,37 @@ services:
     ports:
       - "8081:80"
     restart: unless-stopped
+     # JMeter - Tests de performance API
+  jmeter:
+    image: justb4/jmeter:5.5
+    container_name: jmeter
+    volumes:
+      - ./jmeter-tests:/tests
+      - ./jmeter-results:/results
+    command: >
+      -n -t /tests/api-test.jmx 
+      -l /results/results.jtl 
+      -e -o /results/html-report
+      -Jjmeter.reportgenerator.overall_granularity=1000
+    depends_on:
+      - angular-app
+      - json-server
+    profiles:
+      - test
+
+  # Lighthouse - Tests de performance Frontend
+  lighthouse:
+    image: femtopixel/google-lighthouse:latest
+    container_name: lighthouse
+    volumes:
+      - ./lighthouse-reports:/home/chrome/reports
+    command: >
+      --chrome-flags="--headless --no-sandbox --disable-gpu"
+      --output=html
+      --output=json
+      --output-path=/home/chrome/reports/report.html
+      http://angular-app:80
+    depends_on:
+      - angular-app
+    profiles:
+      - test
