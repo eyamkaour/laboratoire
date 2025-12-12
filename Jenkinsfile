@@ -35,11 +35,7 @@ pipeline {
                 bat 'docker rm -f nginx-app json-server angular-app testproj-other-app-1 || exit 0'
                 
                 echo "=== Check if ports are free ==="
-                bat 'netstat -ano | findstr :4200 || echo Port 4200 is free'
-                bat 'netstat -ano | findstr :3000 || echo Port 3000 is free'
-                bat 'netstat -ano | findstr :8080 || echo Port 8080 is free'
-                
-                bat 'timeout /t 5'
+              
             }
         }
 
