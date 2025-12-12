@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
+
   angular-app:
     build: .
     container_name: angular-app
     ports:
       - "4200:80"
     depends_on:
-      json-server:
-        condition: service_healthy
+      - json-server
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
       interval: 10s
@@ -38,7 +38,10 @@ services:
     ports:
       - "8081:80"
     restart: unless-stopped
-     # JMeter - Tests de performance API
+
+  # ==========================
+  # JMeter - Tests API
+  # ==========================
   jmeter:
     image: justb4/jmeter:5.5
     container_name: jmeter
@@ -46,8 +49,8 @@ services:
       - ./jmeter-tests:/tests
       - ./jmeter-results:/results
     command: >
-      -n -t /tests/api-test.jmx 
-      -l /results/results.jtl 
+      -n -t /tests/api-test.jmx
+      -l /results/results.jtl
       -e -o /results/html-report
       -Jjmeter.reportgenerator.overall_granularity=1000
     depends_on:
@@ -56,19 +59,21 @@ services:
     profiles:
       - test
 
-  # Lighthouse - Tests de performance Frontend
-lighthouse:
-  image: femtopixel/google-lighthouse:latest
-  container_name: lighthouse
-  volumes:
-    - ./lighthouse-reports:/home/chrome/reports
-  command: >
-    lighthouse http://angular-app:80
-    --chrome-flags="--headless --no-sandbox --disable-gpu"
-    --output=html
-    --output=json
-    --output-path=/home/chrome/reports/report.html
-  depends_on:
-    - angular-app
-  profiles:
-    - test
+  # ==========================
+  # Lighthouse - Frontend Audit
+  # ==========================
+  lighthouse:
+    image: femtopixel/google-lighthouse:latest
+    container_name: lighthouse
+    volumes:
+      - ./lighthouse-reports:/home/chrome/reports
+    command: >
+      lighthouse http://angular-app:80
+      --chrome-flags="--headless --no-sandbox --disable-gpu"
+      --output=html
+      --output=json
+      --output-path=/home/chrome/reports/report.html
+    depends_on:
+      - angular-app
+    profiles:
+      - test
