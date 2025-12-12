@@ -28,8 +28,6 @@ pipeline {
                     bat 'docker-compose down -v --remove-orphans || exit /b 0'
                     bat 'docker rm -f nginx-app json-server angular-app 2>nul || exit /b 0'
                 }
-                
-                echo "=== Waiting for cleanup to complete ==="
                 sleep(time: 5, unit: 'SECONDS')
             }
         }
@@ -38,61 +36,7 @@ pipeline {
             steps {
                 echo "=== Building and starting containers ==="
                 bat 'docker-compose up -d --build'
-                
-                echo "=== Waiting for services to start ==="
                 sleep(time: 30, unit: 'SECONDS')
-            }
-        }
-
-        stage('Debug Containers') {
-            steps {
-                echo "=== List running containers ==="
-                bat 'docker ps'
-                
-                echo "=== Check Angular container logs ==="
-                script {
-                    bat 'docker logs angular-app 2>nul || docker logs testproj-angular-app-1 2>nul || echo No Angular container found'
-                }
-                
-                echo "=== Check JSON Server logs ==="
-                script {
-                    bat 'docker logs json-server 2>nul || docker logs testproj-json-server-1 2>nul || echo No JSON Server container found'
-                }
-                
-                echo "=== Check files in Angular container ==="
-                script {
-                    bat 'docker exec angular-app ls -la /usr/share/nginx/html 2>nul || echo Cannot access container'
-                }
-            }
-        }
-
-        stage('Health Checks') {
-            steps {
-                script {
-                    echo "=== Waiting for services to be ready ==="
-                    retry(5) {
-                        sleep(time: 5, unit: 'SECONDS')
-                        echo "Testing Angular health endpoint..."
-                        bat 'curl -f http://localhost:4200/health'
-                    }
-                }
-                
-                echo "=== Testing Angular main page ==="
-                bat 'curl -f http://localhost:4200'
-                
-                echo "=== Testing JSON Server ==="
-                bat 'curl -f http://localhost:3000/'
-                
-                echo "=== Testing API proxy ==="
-                bat 'curl -f http://localhost:4200/api/events'
-            }
-        }
-
-        stage('Verify Response Content') {
-            steps {
-                echo "=== Checking if Angular returns HTML ==="
-                bat 'curl http://localhost:4200 > response.html'
-                bat 'findstr /C:"<html" response.html'
             }
         }
 
@@ -101,15 +45,12 @@ pipeline {
                 stage('JMeter - API Load Test') {
                     steps {
                         echo "=== Running JMeter Performance Tests ==="
-                        echo "Testing API with 20 virtual users..."
-                        
                         script {
-                            bat 'if not exist jmeter-results mkdir jmeter-results'
+                            // Supprime l'ancien dossier de résultats si existant
+                            bat 'if exist jmeter-results rmdir /s /q jmeter-results'
+                            bat 'mkdir jmeter-results'
                             bat 'docker-compose --profile test run --rm jmeter'
                         }
-                        
-                        echo "=== JMeter test completed ==="
-                        
                         publishHTML([
                             allowMissing: false,
                             alwaysLinkToLastBuild: true,
@@ -121,19 +62,16 @@ pipeline {
                         ])
                     }
                 }
-                
+
                 stage('Lighthouse - Frontend Performance') {
                     steps {
                         echo "=== Running Lighthouse Audit ==="
-                        echo "Analyzing Angular app performance..."
-                        
                         script {
-                            bat 'if not exist lighthouse-reports mkdir lighthouse-reports'
-                            bat 'docker-compose --profile test run --rm lighthouse'
+                            // Supprime l'ancien dossier de rapports si existant
+                            bat 'if exist lighthouse-reports rmdir /s /q lighthouse-reports'
+                            bat 'mkdir lighthouse-reports'
+                            bat 'docker-compose --profile test run --rm lighthouse lighthouse http://angular-app:80 --chrome-flags="--headless --no-sandbox --disable-gpu" --output=html --output=json --output-path=/home/chrome/reports/report.html'
                         }
-                        
-                        echo "=== Lighthouse audit completed ==="
-                        
                         publishHTML([
                             allowMissing: false,
                             alwaysLinkToLastBuild: true,
@@ -147,44 +85,17 @@ pipeline {
                 }
             }
         }
-
-        stage('Performance Summary') {
-            steps {
-                echo "=========================================="
-                echo "     TESTS DE PERFORMANCE TERMINÉS       "
-                echo "=========================================="
-                echo ""
-                echo "📊 JMeter Report: Voir dans Jenkins > JMeter Performance Report"
-                echo "🔍 Lighthouse Report: Voir dans Jenkins > Lighthouse Performance Report"
-                echo ""
-                echo "Résultats disponibles dans:"
-                echo "  - jmeter-results/html-report/index.html"
-                echo "  - lighthouse-reports/report.html"
-            }
-        }
     }
 
     post {
         always {
             echo "=== Pipeline completed ==="
             bat 'docker ps || exit /b 0'
-            
             echo "=== Cleaning up test containers ==="
-            bat """
-            docker-compose --profile test run --rm lighthouse 
-            lighthouse http://angular-app:80
-            --chrome-flags="--headless --no-sandbox --disable-gpu"
-            --output=html
-            --output=json
-            --output-path=/home/chrome/reports/report.html
-        """
-
+            bat 'docker-compose --profile test down || exit /b 0'
         }
         failure {
-            echo "=========================================="
-            echo "     ❌ PIPELINE ÉCHOUÉ ❌               "
-            echo "=========================================="
-            echo "Collecte des informations de debug..."
+            echo "❌ PIPELINE ÉCHOUÉ ❌"
             script {
                 bat 'docker logs angular-app 2>nul || echo No Angular logs'
                 bat 'docker logs json-server 2>nul || echo No JSON Server logs'
