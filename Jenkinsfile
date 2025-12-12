@@ -15,17 +15,10 @@ pipeline {
                 bat 'if exist nginx.conf (echo nginx.conf found) else (echo WARNING: nginx.conf not found!)'
                 bat 'if exist Dockerfile (echo Dockerfile found) else (echo ERROR: Dockerfile not found! && exit 1)'
                 bat 'if exist package.json (echo package.json found) else (echo ERROR: package.json not found! && exit 1)'
+                bat 'if exist jmeter-tests\\api-test.jmx (echo JMeter test found) else (echo WARNING: JMeter test not found!)'
             }
         }
-        stage('Setup Git') {
-    steps {
-        bat '''
-            git config --global core.autocrlf input
-            git config --global core.eol lf
-            git config --global core.safecrlf warn
-        '''
-    }
-}
+
         stage('Cleanup Old Containers') {
             steps {
                 echo "=== Stopping and removing old containers ==="
@@ -35,7 +28,11 @@ pipeline {
                 bat 'docker rm -f nginx-app json-server angular-app testproj-other-app-1 || exit 0'
                 
                 echo "=== Check if ports are free ==="
-              
+                bat 'netstat -ano | findstr :4200 || echo Port 4200 is free'
+                bat 'netstat -ano | findstr :3000 || echo Port 3000 is free'
+                bat 'netstat -ano | findstr :8080 || echo Port 8080 is free'
+                
+                sleep(time: 5, unit: 'SECONDS')
             }
         }
 
@@ -45,7 +42,7 @@ pipeline {
                 bat 'docker-compose up -d --build'
                 
                 echo "=== Waiting for services to be healthy ==="
-                bat 'timeout /t 30'
+                sleep(time: 30, unit: 'SECONDS')
             }
         }
 
@@ -110,6 +107,9 @@ pipeline {
                         echo "=== Running JMeter Performance Tests ==="
                         echo "Testing API with 20 virtual users..."
                         
+                        // Créer le dossier de résultats s'il n'existe pas
+                        bat 'if not exist jmeter-results mkdir jmeter-results'
+                        
                         // Lancer JMeter
                         bat 'docker-compose --profile test run --rm jmeter'
                         
@@ -133,6 +133,9 @@ pipeline {
                     steps {
                         echo "=== Running Lighthouse Audit ==="
                         echo "Analyzing Angular app performance..."
+                        
+                        // Créer le dossier de résultats s'il n'existe pas
+                        bat 'if not exist lighthouse-reports mkdir lighthouse-reports'
                         
                         // Lancer Lighthouse
                         bat 'docker-compose --profile test run --rm lighthouse'
